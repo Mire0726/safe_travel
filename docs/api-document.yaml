@@ -1,0 +1,15 @@
+openapi: 3.0.2
+info:
+  title: "API"
+  version: "2.0.0"
+servers:
+  - url: "http://localhost:8080"
+    description: "Development server"
+  - url: "http://localhost:3000"
+    description: "Testing server"
+tags:
+  - name: "user"
+    description: "Operations about user"
+paths:
+  /signUp:
+    $ref: "./paths.yaml/#/signUp"

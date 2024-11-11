@@ -1,0 +1,28 @@
+/signUp:
+  post:
+    tags:
+      - user
+    summary: "Sign up a new user"
+    description: "Allows a new user to sign up using their email and password."
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SignUpRequest"
+    responses:
+      "200":
+        description: "Successful sign up"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignUpResponse"
+            example:
+              message: "User successfully signed up"
+              user:
+                id: 12345
+                email: "newuser@example.com"
+      "400":
+        $ref: "#/components/responses/BadRequest"
+      "500":
+        $ref: "#/components/responses/InternalServerError"
