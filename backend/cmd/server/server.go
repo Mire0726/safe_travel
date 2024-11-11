@@ -1,20 +1,23 @@
-package infrastructure
+package server
 
 import (
 	"log"
 
+	"github.com/Mire0726/safe_travel/backend/api/handler"
+	"github.com/Mire0726/safe_travel/backend/api/services"
 	"github.com/labstack/echo/v4"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
+	"github.com/Mire0726/safe_travel/backend/api/infrastructure"
 )
 
 type Server struct {
 	e    *echo.Echo
 	db   *gorm.DB
-	auth *FirebaseAuth
+	auth *infrastructure.FirebaseAuth
 }
 
-func NewServer(db *gorm.DB, auth *FirebaseAuth) *Server {
+func NewServer(db *gorm.DB, auth *infrastructure.FirebaseAuth) *Server {
 	e := echo.New()
 	return &Server{
 		e:    e,
@@ -47,17 +50,22 @@ func (s *Server) setupMiddleware() {
 
 func (s *Server) setupRoutes() {
 	// 認証ミドルウェアの作成
-	authMiddleware := NewAuthMiddleware(s.auth)
+	authMiddleware := infrastructure.NewAuthMiddleware(s.auth)
 
 	api := s.e.Group("/api")
 
-	// // 認証不要のエンドポイント
-	// public := api.Group("")
-	// {
-	// 	public.GET("/health", func(c echo.Context) error {
-	// 		return c.JSON(200, map[string]string{"status": "ok"})
-	// 	})
-	// }
+	// 認証不要のエンドポイント
+	public := api.Group("")
+	{
+		public.GET("/health", func(c echo.Context) error {
+			return c.JSON(200, map[string]string{"status": "ok"})
+		})
+
+		// AuthUsecaseのインスタンスを作成
+		authUC := services.NewAuthUC(s.auth)
+		authHandler := handler.NewHandler(authUC)
+		public.POST("/signup", authHandler.SignUp)
+	}
 
 	// // 認証必要のエンドポイント
 	protected := api.Group("")

@@ -7,26 +7,27 @@ import (
 	"os"
 
 	"github.com/Mire0726/safe_travel/backend/api/infrastructure"
+	"github.com/Mire0726/safe_travel/backend/cmd/server"
 )
 
 func main() {
 	// データベース設定の読み込み
-    dbConfig, err := infrastructure.LoadDBConfig()
-    if err != nil {
-        log.Fatal("Could not load database config:", err)
-    }
+	dbConfig, err := infrastructure.LoadDBConfig()
+	if err != nil {
+		log.Fatal("Could not load database config:", err)
+	}
 
-    // データベース接続の初期化
-    db, err := infrastructure.NewDB(dbConfig)
-    if err != nil {
-        log.Fatal("Could not initialize database:", err)
-    }
+	// データベース接続の初期化
+	db, err := infrastructure.NewDB(dbConfig)
+	if err != nil {
+		log.Fatal("Could not initialize database:", err)
+	}
 
 	firebaseAuth, err := infrastructure.NewFirebaseAuth()
 	if err != nil {
 		log.Fatalf("Failed to initialize Firebase: %v", err)
 	}
-	
+
 	// db, err := infrastructure.ConnectToDB()
 	// if err != nil {
 	// 	log.Fatal("Could not initialize database:", err)
@@ -42,7 +43,7 @@ func main() {
 
 	addr := fmt.Sprintf(":%s", port)
 	log.Printf("Listening on %s...\n", addr)
-	server := infrastructure.NewServer(db, firebaseAuth)
+	server := server.NewServer(db, firebaseAuth)
 	server.Serve(":8080")
 
 	if db == nil {

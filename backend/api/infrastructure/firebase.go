@@ -10,6 +10,11 @@ import (
 	"google.golang.org/api/option"
 )
 
+// UserContextKey はコンテキストにユーザー情報を格納するためのキー型です
+type UserContextKey string
+
+const userContextKey UserContextKey = "user"
+
 type FirebaseAuth struct {
 	app  *firebase.App
 	auth *auth.Client
@@ -37,7 +42,7 @@ func NewFirebaseAuth() (*FirebaseAuth, error) {
 }
 
 // VerifyToken はJWTトークンを検証します
-func (fa *FirebaseAuth) VerifyToken(ctx context.Context, authHeader string) (*auth.Token, error) {
+func (fa *FirebaseAuth) VerifyToken(ctx context.Context, authHeader string) (context.Context, error) {
 	if authHeader == "" {
 		return nil, echo.NewHTTPError(401, "missing authorization header")
 	}
@@ -49,11 +54,38 @@ func (fa *FirebaseAuth) VerifyToken(ctx context.Context, authHeader string) (*au
 		return nil, echo.NewHTTPError(401, "invalid token")
 	}
 
-	return token, nil
+	// コンテキストにトークン情報をセット
+	ctx = context.WithValue(ctx, userContextKey, token)
+
+	return ctx, nil
 }
 
 // GetUserID はコンテキストからユーザーIDを取得するヘルパー関数です
 func GetUserID(c echo.Context) string {
 	token := c.Get("user").(*auth.Token)
 	return token.UID
+}
+
+// GetUser はユーザー情報を取得します
+func (fa *FirebaseAuth) GetUser(ctx context.Context, uid string) (*auth.UserRecord, error) {
+	user, err := fa.auth.GetUser(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// CreateUser はユーザーを作成します
+func (fa *FirebaseAuth) CreateUser(ctx context.Context, email, password string) (*auth.UserRecord, error) {
+	params := (&auth.UserToCreate{}).
+		Email(email).
+		Password(password)
+
+	user, err := fa.auth.CreateUser(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
