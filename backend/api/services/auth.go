@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"firebase.google.com/go/v4/auth"
-	"github.com/Mire0726/safe_travel/backend/api/infrastructure"
+	"github.com/Mire0726/safe_travel/backend/api/infrastructure/firebase"
 	"gorm.io/gorm/logger"
 )
 
@@ -14,10 +14,10 @@ type AuthUsecase interface {
 }
 
 type authUC struct {
-	fa *infrastructure.FirebaseAuth
+	fa *firebase.FirebaseAuth
 }
 
-func NewAuthUC(fa *infrastructure.FirebaseAuth) AuthUsecase {
+func NewAuthUC(fa *firebase.FirebaseAuth) AuthUsecase {
 	return &authUC{fa: fa}
 }
 

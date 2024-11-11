@@ -4,20 +4,20 @@ import (
 	"log"
 
 	"github.com/Mire0726/safe_travel/backend/api/handler"
+	"github.com/Mire0726/safe_travel/backend/api/infrastructure/firebase"
 	"github.com/Mire0726/safe_travel/backend/api/services"
 	"github.com/labstack/echo/v4"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
-	"github.com/Mire0726/safe_travel/backend/api/infrastructure"
 )
 
 type Server struct {
 	e    *echo.Echo
 	db   *gorm.DB
-	auth *infrastructure.FirebaseAuth
+	auth *firebase.FirebaseAuth
 }
 
-func NewServer(db *gorm.DB, auth *infrastructure.FirebaseAuth) *Server {
+func NewServer(db *gorm.DB, auth *firebase.FirebaseAuth) *Server {
 	e := echo.New()
 	return &Server{
 		e:    e,
@@ -50,7 +50,7 @@ func (s *Server) setupMiddleware() {
 
 func (s *Server) setupRoutes() {
 	// 認証ミドルウェアの作成
-	authMiddleware := infrastructure.NewAuthMiddleware(s.auth)
+	authMiddleware := firebase.NewAuthMiddleware(s.auth)
 
 	api := s.e.Group("/api")
 

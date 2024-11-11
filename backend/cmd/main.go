@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/Mire0726/safe_travel/backend/api/infrastructure"
+	"github.com/Mire0726/safe_travel/backend/api/infrastructure/firebase"
 	"github.com/Mire0726/safe_travel/backend/cmd/server"
 )
 
@@ -23,7 +24,7 @@ func main() {
 		log.Fatal("Could not initialize database:", err)
 	}
 
-	firebaseAuth, err := infrastructure.NewFirebaseAuth()
+	firebaseAuth, err := firebase.NewFirebaseAuth()
 	if err != nil {
 		log.Fatalf("Failed to initialize Firebase: %v", err)
 	}

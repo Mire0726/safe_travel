@@ -39,6 +39,7 @@ services:
   swagger-ui:
     image: swaggerapi/swagger-ui:latest
     environment:
+      URL:
       SWAGGER_JSON: /api/docs/api-document.yaml
     volumes:
       - ./docs/api-document.yaml:/api/docs/api-document.yaml:ro
