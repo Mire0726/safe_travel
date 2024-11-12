@@ -26,12 +26,12 @@ func main() {
 
 	// データを準備
 	data := TemplateData{
-		Package:               "repository",
-		CamelTableName:        "user",
-		PascalTableName:       "User",
-		PluralCamelTableName:  "users",
-		PluralPascalTableName: "Users",
-		TableName:             "users",
+		Package:               "sql",
+		CamelTableName:        "transport",
+		PascalTableName:       "Transport",
+		PluralCamelTableName:  "transports",
+		PluralPascalTableName: "Transports",
+		TableName:             "transports",
 	}
 
 	// テンプレートにデータを適用

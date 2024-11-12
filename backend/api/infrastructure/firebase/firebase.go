@@ -2,6 +2,7 @@ package firebase
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	firebase "firebase.google.com/go/v4"
@@ -80,10 +81,13 @@ func (fa *FirebaseAuth) GetUser(ctx context.Context, uid string) (*auth.UserReco
 func (fa *FirebaseAuth) CreateUser(ctx context.Context, email, password string) (*auth.UserRecord, error) {
 	params := (&auth.UserToCreate{}).
 		Email(email).
+		EmailVerified(false).
 		Password(password)
 
 	user, err := fa.auth.CreateUser(ctx, params)
 	if err != nil {
+		fmt.Println(err, "infra:firebaseのユーザー作成に失敗しました")
+
 		return nil, err
 	}
 

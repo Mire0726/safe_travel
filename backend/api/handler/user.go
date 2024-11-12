@@ -14,7 +14,7 @@ func (h *Handler) SignUp(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request"})
 	}
 
-	res, err := h.authUC.SignUp(ctx, req.Email, req.Password)
+	res, err := h.authUC.SignUp(ctx, req.Email, req.Name, req.Password)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error"})
 	}

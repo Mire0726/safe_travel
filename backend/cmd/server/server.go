@@ -52,10 +52,8 @@ func (s *Server) setupRoutes() {
 	// 認証ミドルウェアの作成
 	authMiddleware := firebase.NewAuthMiddleware(s.auth)
 
-	api := s.e.Group("/api")
-
 	// 認証不要のエンドポイント
-	public := api.Group("")
+	public := s.e.Group("")
 	{
 		public.GET("/health", func(c echo.Context) error {
 			return c.JSON(200, map[string]string{"status": "ok"})
@@ -64,11 +62,11 @@ func (s *Server) setupRoutes() {
 		// AuthUsecaseのインスタンスを作成
 		authUC := services.NewAuthUC(s.auth)
 		authHandler := handler.NewHandler(authUC)
-		public.POST("/signup", authHandler.SignUp)
+		public.POST("/signUp", authHandler.SignUp)
 	}
 
 	// // 認証必要のエンドポイント
-	protected := api.Group("")
+	protected := s.e.Group("")
 	protected.Use(authMiddleware.VerifyToken)
 	// {
 	// 	// Tripハンドラーの初期化
