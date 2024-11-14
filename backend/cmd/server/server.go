@@ -3,9 +3,11 @@ package server
 import (
 	"log"
 
+	"firebase.google.com/go/v4/db"
 	"github.com/Mire0726/safe_travel/backend/api/handler"
+	"github.com/Mire0726/safe_travel/backend/api/infrastructure"
+	"github.com/Mire0726/safe_travel/backend/api/infrastructure/datastore/datastoresql"
 	"github.com/Mire0726/safe_travel/backend/api/infrastructure/firebase"
-	"github.com/Mire0726/safe_travel/backend/api/services"
 	"github.com/labstack/echo/v4"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
 	"gorm.io/gorm"
@@ -59,14 +61,22 @@ func (s *Server) setupRoutes() {
 			return c.JSON(200, map[string]string{"status": "ok"})
 		})
 
-		// AuthUsecaseのインスタンスを作成
-		authUC := services.NewAuthUC(s.auth)
-		authHandler := handler.NewHandler(authUC)
-		public.POST("/signUp", authHandler.SignUp)
+		authClient, err := firebase.NewFirebaseAuth()
+		if err != nil {
+			log.Fatalf("Failed to create firebase auth client: %v", err)
+		}
+
+		
+
+		data := datastoresql.NewStore(dbclient, log.Default())
+
+		// ハンドラーの初期化
+		handlerCmd := handler.NewHandler(*authClient, data)
+		public.POST("/signUp", handlerCmd.SignUp)
 	}
 
 	// // 認証必要のエンドポイント
-	protected := s.e.Group("")
+	protected := s.e.Group("/user")
 	protected.Use(authMiddleware.VerifyToken)
 	// {
 	// 	// Tripハンドラーの初期化

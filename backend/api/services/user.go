@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/Mire0726/safe_travel/backend/api/domain/model"
-	"github.com/Mire0726/safe_travel/backend/api/infrastructure/data"
+	"github.com/Mire0726/safe_travel/backend/api/infrastructure/datastore"
 	"github.com/Mire0726/safe_travel/backend/api/infrastructure/firebase"
 	"gorm.io/gorm/logger"
 )
@@ -20,10 +20,10 @@ type AuthUsecase interface {
 
 type authUC struct {
 	fa   firebase.FirebaseAuth
-	data data.Data
+	data datastore.Data
 }
 
-func NewAuthUC(fa firebase.FirebaseAuth, data data.Data) AuthUsecase {
+func NewAuthUC(fa firebase.FirebaseAuth, data datastore.Data) AuthUsecase {
 	return &authUC{
 		fa:   fa,
 		data: data,
@@ -40,7 +40,7 @@ type SignRequest struct {
 }
 
 func (uc *authUC) SignUp(ctx context.Context, email, name, password string) (*auth.UserRecord, error) {
-	if err := uc.data.ReadWrite().User().Insert(ctx, &model.User{
+	if err := uc.data.ReadWriteStore().User().Insert(ctx, &model.User{
 		ID:    uuid.New().String(),
 		Name:  name,
 		Email: email,

@@ -1,4 +1,4 @@
-package data
+package datastore
 
 import (
 	"context"
@@ -7,11 +7,11 @@ import (
 )
 
 type Data interface {
-	ReadWrite() ReadWrite
+	ReadWriteStore() ReadWriteStore
 
-	ReadWriteTransaction(ctx context.Context, f func(context.Context, ReadWrite) error) error
+	ReadWriteTransaction(ctx context.Context, f func(context.Context, ReadWriteStore) error) error
 }
-type ReadWrite interface {
+type ReadWriteStore interface {
 	User() repository.User
 	Event() repository.Event
 	Transport() repository.Transport
