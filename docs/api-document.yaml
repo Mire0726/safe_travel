@@ -28,7 +28,7 @@ paths:
               $ref: "#/components/schemas/SignUpRequest"
             example:
               email: "new@ex.com"
-              name : "newUser"
+              name: "newUser"
               password: "password"
       responses:
         "200":
@@ -38,7 +38,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/SignUpResponse"
               example:
-                message: "User successfully signed up"
+                id: "a3b0f9a0-e9c3-4ff4-b3fa-65f8a4f1f2a5"
+                localId: "firebase-uid-1234"
+                email: "newuser@example.com"
+                name: "newUser"
+                idToken: "id-token-string"
+                refreshToken: "refresh-token-string"
+                expiresIn: "3600"
         "400":
           $ref: "#/components/responses/BadRequest"
         "500":
@@ -54,6 +60,10 @@ components:
           format: email
           description: "User's email"
           example: "newuser@example.com"
+        name:
+          type: string
+          description: "User's name"
+          example: "newUser"
         password:
           type: string
           description: "User's password"
@@ -65,19 +75,42 @@ components:
     SignUpResponse:
       type: object
       properties:
-        message:
+        id:
           type: string
-          description: "A success message"
-        user:
-          type: object
-          properties:
-            id:
-              type: integer
-              format: int64
-              description: "Newly created user's unique identifier"
-            email:
-              type: string
-              description: "Email of the newly signed up user"
+          description: "Newly created user's unique internal ID"
+          example: "a3b0f9a0-e9c3-4ff4-b3fa-65f8a4f1f2a5"
+        localId:
+          type: string
+          description: "Firebase UID (unique identifier)"
+          example: "firebase-uid-1234"
+        email:
+          type: string
+          description: "Email of the newly signed up user"
+          example: "newuser@example.com"
+        name:
+          type: string
+          description: "Name of the newly signed up user"
+          example: "newUser"
+        idToken:
+          type: string
+          description: "Firebase ID token"
+          example: "id-token-string"
+        refreshToken:
+          type: string
+          description: "Firebase refresh token"
+          example: "refresh-token-string"
+        expiresIn:
+          type: string
+          description: "Token expiration time in seconds"
+          example: "3600"
+      required:
+        - id
+        - localId
+        - email
+        - name
+        - idToken
+        - refreshToken
+        - expiresIn
   responses:
     BadRequest:
       description: "Bad request"

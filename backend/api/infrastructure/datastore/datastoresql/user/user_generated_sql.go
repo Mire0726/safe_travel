@@ -114,7 +114,8 @@ func (m *user) Insert(ctx context.Context, user *model.User) error {
 
 	err := user.Insert(ctx, m.dbClient, boil.Infer())
 	if err != nil {
-		return fmt.Errorf("error executing user.Insert: %w", err)
+		m.logger.Printf("Error executing user.Insert: %v", err)
+        return fmt.Errorf("error executing user.Insert: %w", err)
 	}
 
 	return nil

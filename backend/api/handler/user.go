@@ -9,7 +9,7 @@ import (
 
 func (h *Handler) SignUp(c echo.Context) error {
 	ctx := c.Request().Context()
-	var req svc.SignRequest
+	var req svc.SignUpRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request"})
 	}
@@ -18,5 +18,6 @@ func (h *Handler) SignUp(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error"})
 	}
+
 	return c.JSON(http.StatusOK, res)
 }
