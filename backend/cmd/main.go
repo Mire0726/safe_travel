@@ -29,11 +29,6 @@ func main() {
 		log.Fatalf("Failed to initialize Firebase: %v", err)
 	}
 
-	// db, err := infrastructure.ConnectToDB()
-	// if err != nil {
-	// 	log.Fatal("Could not initialize database:", err)
-	// }
-
 	flag.Parse()
 	defaultPort := "8080"
 	port := os.Getenv("PORT")

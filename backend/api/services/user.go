@@ -10,7 +10,6 @@ import (
 	"github.com/Mire0726/safe_travel/backend/api/domain/model"
 	"github.com/Mire0726/safe_travel/backend/api/infrastructure/datastore"
 	"github.com/Mire0726/safe_travel/backend/api/infrastructure/firebase"
-	"gorm.io/gorm/logger"
 )
 
 // AuthUsecase インターフェースは、認証に関するメソッドを定義します
@@ -45,14 +44,12 @@ func (uc *authUC) SignUp(ctx context.Context, email, name, password string) (*au
 		Name:  name,
 		Email: email,
 	}); err != nil {
-		logger.Default.LogMode(logger.Error)
 		fmt.Println(err, "ユーザー情報のDB保存に失敗しました")
 		return nil, err
 	}
 
 	res, err := uc.fa.CreateUser(ctx, email, password)
 	if err != nil {
-		logger.Default.LogMode(logger.Error)
 		fmt.Println(err, "firebaseのユーザー作成に失敗しました")
 
 		return nil, err

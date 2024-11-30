@@ -1,25 +1,24 @@
 package server
 
 import (
+	"database/sql"
 	"log"
 
-	"firebase.google.com/go/v4/db"
 	"github.com/Mire0726/safe_travel/backend/api/handler"
 	"github.com/Mire0726/safe_travel/backend/api/infrastructure"
 	"github.com/Mire0726/safe_travel/backend/api/infrastructure/datastore/datastoresql"
 	"github.com/Mire0726/safe_travel/backend/api/infrastructure/firebase"
 	"github.com/labstack/echo/v4"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
-	"gorm.io/gorm"
 )
 
 type Server struct {
 	e    *echo.Echo
-	db   *gorm.DB
+	db   *sql.DB
 	auth *firebase.FirebaseAuth
 }
 
-func NewServer(db *gorm.DB, auth *firebase.FirebaseAuth) *Server {
+func NewServer(db *sql.DB, auth *firebase.FirebaseAuth) *Server {
 	e := echo.New()
 	return &Server{
 		e:    e,
@@ -66,9 +65,17 @@ func (s *Server) setupRoutes() {
 			log.Fatalf("Failed to create firebase auth client: %v", err)
 		}
 
-		
+		dbCfg, err := infrastructure.LoadDBConfig()
+		if err != nil {
+			log.Fatalf("Failed to load db config: %v", err)
+		}
 
-		data := datastoresql.NewStore(dbclient, log.Default())
+		dbClient, err := infrastructure.NewDB(dbCfg)
+		if err != nil {
+			log.Fatalf("Failed to connect to db: %v", err)
+		}
+
+		data := datastoresql.NewStore(dbClient, log.Default())
 
 		// ハンドラーの初期化
 		handlerCmd := handler.NewHandler(*authClient, data)

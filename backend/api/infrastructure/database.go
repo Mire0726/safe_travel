@@ -1,12 +1,12 @@
 package infrastructure
 
 import (
+	"database/sql"
 	"fmt"
 	"os"
 
 	"github.com/joho/godotenv"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
+	_ "github.com/go-sql-driver/mysql" // MySQL ドライバ
 )
 
 // DBConfig はデータベース接続の設定を保持します
@@ -40,7 +40,7 @@ func LoadDBConfig() (*DBConfig, error) {
 }
 
 // NewDB はデータベース接続を初期化します
-func NewDB(cfg *DBConfig) (*gorm.DB, error) {
+func NewDB(cfg *DBConfig) (*sql.DB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=%s&loc=%s",
 		cfg.User,
 		cfg.Password,
@@ -52,18 +52,21 @@ func NewDB(cfg *DBConfig) (*gorm.DB, error) {
 		cfg.Loc,
 	)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	// sqlboiler用に標準のsql.DBを開く
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
 	// コネクションプールの設定
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, err
+	db.SetMaxIdleConns(10)
+	db.SetMaxOpenConns(100)
+
+	// 実際に接続確認
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
-	sqlDB.SetMaxIdleConns(10)
-	sqlDB.SetMaxOpenConns(100)
 
 	return db, nil
 }
+
