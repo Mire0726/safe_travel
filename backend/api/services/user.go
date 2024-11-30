@@ -70,7 +70,9 @@ func (uc *authUC) SignUp(ctx context.Context, email, name, password string) (*Si
 
 	// データベースにユーザー情報を保存
 	if err := uc.data.ReadWriteStore().User().Insert(ctx, user); err != nil {
-		uc.fa.DeleteUser(ctx, firebaseUser.LocalID)
+		if err := uc.fa.DeleteUser(ctx, firebaseUser.LocalID); err != nil {
+			log.Println(err, "ユーザー情報の保存に失敗しました")
+		}
 		return nil, fmt.Errorf("ユーザー情報の保存に失敗しました: %w", err)
 	}
 
