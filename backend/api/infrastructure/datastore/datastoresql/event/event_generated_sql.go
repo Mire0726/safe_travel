@@ -169,3 +169,21 @@ func (u *event) BulkDelete(ctx context.Context, ids []any) error {
 
 	return nil
 }
+
+func (m *event) Exist(ctx context.Context, opt ...qm.QueryMod) (bool, error) {
+	query := make([]qm.QueryMod, 0, len(opt)+1)
+	query = append(query, qm.Where("deleted_at IS NULL"))
+	query = append(query, opt...)
+
+	m.logger.Printf("Will execute Event.Exist, package: sql")
+
+	exists, err := model.Events(
+		query...,
+	).Exists(ctx, m.dbClient)
+	if err != nil {
+		return false, fmt.Errorf("error executing event.Exist: %w", err)
+	}
+
+	return exists, nil
+}
+

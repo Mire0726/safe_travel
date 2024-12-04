@@ -114,8 +114,7 @@ func (m *user) Insert(ctx context.Context, user *model.User) error {
 
 	err := user.Insert(ctx, m.dbClient, boil.Infer())
 	if err != nil {
-		m.logger.Printf("Error executing user.Insert: %v", err)
-        return fmt.Errorf("error executing user.Insert: %w", err)
+		return fmt.Errorf("error executing user.Insert: %w", err)
 	}
 
 	return nil
@@ -170,3 +169,20 @@ func (u *user) BulkDelete(ctx context.Context, ids []any) error {
 
 	return nil
 }
+
+func (m *user) Exist(ctx context.Context, opt ...qm.QueryMod) (bool, error) {
+	query := make([]qm.QueryMod, 0, len(opt)+1)
+	query = append(query, opt...)
+
+	m.logger.Printf("Will execute User.Exist, package: sql")
+
+	exists, err := model.Users(
+		query...,
+	).Exists(ctx, m.dbClient)
+	if err != nil {
+		return false, fmt.Errorf("error executing user.Exist: %w", err)
+	}
+
+	return exists, nil
+}
+

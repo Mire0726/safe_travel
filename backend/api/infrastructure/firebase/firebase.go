@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -90,7 +91,7 @@ func (fa *FirebaseAuth) DeleteUser(ctx context.Context, uid string) error {
 	return nil
 }
 
-type SignUpResponse struct {
+type UserResponse struct {
 	IDToken      string `json:"idToken"`
 	Email        string `json:"email"`
 	RefreshToken string `json:"refreshToken"`
@@ -104,7 +105,7 @@ type signUpRequestWithEmailPassword struct {
 	ReturnSecureToken bool   `json:"returnSecureToken"`
 }
 
-func (fa *FirebaseAuth) SignUpWithEmailPassword(ctx context.Context, email, password string) (*SignUpResponse, error) {
+func (fa *FirebaseAuth) SignUpWithEmailPassword(ctx context.Context, email, password string) (*UserResponse, error) {
 	firebaseAPIKey := os.Getenv("FIREBASE_API_KEY")
 
 	reqBody := &signUpRequestWithEmailPassword{
@@ -114,14 +115,34 @@ func (fa *FirebaseAuth) SignUpWithEmailPassword(ctx context.Context, email, pass
 	}
 	url := fmt.Sprintf("https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=%s", firebaseAPIKey)
 
-	signUpResponse := &SignUpResponse{}
+	signUpResponse := &UserResponse{}
 	if err := fa.callPost(ctx, url, reqBody, &signUpResponse); err != nil {
 		fmt.Println(err, "infra:firebaseのユーザー作成に失敗しました")
-		
+
 		return nil, err
 	}
 
 	return signUpResponse, nil
+}
+
+func (fa *FirebaseAuth) SignInWithEmailPassword(ctx context.Context, email, password string) (*UserResponse, error) {
+	firebaseAPIKey := os.Getenv("FIREBASE_API_KEY")
+	log.Println("サインイン")
+	reqBody := &signUpRequestWithEmailPassword{
+		Email:             email,
+		Password:          password,
+		ReturnSecureToken: true,
+	}
+	url := fmt.Sprintf("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=%s", firebaseAPIKey)
+
+	signInResponse := &UserResponse{}
+	if err := fa.callPost(ctx, url, reqBody, &signInResponse); err != nil {
+		fmt.Println(err, "infra:firebaseのユーザーログインに失敗しました")
+
+		return nil, err
+	}
+
+	return signInResponse, nil
 }
 
 func (fa *FirebaseAuth) callPost(ctx context.Context, url string, reqBody any, respBody interface{}) error {

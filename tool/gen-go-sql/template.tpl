@@ -169,3 +169,21 @@ func (u *{{ .CamelTableName }}) BulkDelete(ctx context.Context, ids []any) error
 
 	return nil
 }
+
+func (m *{{ .CamelTableName }}) Exist(ctx context.Context, opt ...qm.QueryMod) (bool, error) {
+	query := make([]qm.QueryMod, 0, len(opt)+1)
+	query = append(query, qm.Where("deleted_at IS NULL"))
+	query = append(query, opt...)
+
+	m.logger.Printf("Will execute {{ .PascalTableName }}.Exist, package: {{ .Package }}")
+
+	exists, err := model.{{ .PluralPascalTableName }}(
+		query...,
+	).Exists(ctx, m.dbClient)
+	if err != nil {
+		return false, fmt.Errorf("error executing {{ .CamelTableName }}.Exist: %w", err)
+	}
+
+	return exists, nil
+}
+

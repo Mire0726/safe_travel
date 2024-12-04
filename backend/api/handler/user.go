@@ -9,12 +9,27 @@ import (
 
 func (h *Handler) SignUp(c echo.Context) error {
 	ctx := c.Request().Context()
-	var req svc.SignUpRequest
+	var req svc.UserRequest
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request"})
 	}
 
-	res, err := h.authUC.SignUp(ctx, req.Email, req.Name, req.Password)
+	res, err := h.authUC.SignUp(ctx, req)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error"})
+	}
+
+	return c.JSON(http.StatusOK, res)
+}
+
+func (h *Handler) SignIn(c echo.Context) error {
+	ctx := c.Request().Context()
+	var req svc.EmailPassword
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "bad request"})
+	}
+
+	res, err := h.authUC.SignIn(ctx, req)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error"})
 	}

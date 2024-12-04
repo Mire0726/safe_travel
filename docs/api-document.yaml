@@ -25,7 +25,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SignUpRequest"
+              $ref: "#/components/schemas/UserRequest"
             example:
               email: "new@ex.com"
               name: "newUser"
@@ -36,7 +36,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SignUpResponse"
+                $ref: "#/components/schemas/UserResponse"
               example:
                 id: "a3b0f9a0-e9c3-4ff4-b3fa-65f8a4f1f2a5"
                 localId: "firebase-uid-1234"
@@ -49,10 +49,54 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalServerError"
-
+  /signIn:
+    post:
+      tags:
+        - user
+      summary: "Sign in a user"
+      description: "Allows a user to sign in using their email and password."
+      security: [] # No security required
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: "User's email"
+                  example: "new@ex.com"
+                password:
+                  type: string
+                  description: "User's password"
+                  example: "password"
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: "Successful sign in"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+              example:
+                id: "a3b0f9a0-e9c3-4ff4-b3fa-65f8a4f1f2a5"
+                localId: "firebase-uid-1234"
+                email: "user@ex.com"
+                name: "newUser"
+                idToken: "id-token-string"
+                refreshToken: "refresh-token-string"
+                expiresIn: "3600"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 components:
   schemas:
-    SignUpRequest:
+    UserRequest:
       type: object
       properties:
         email:
@@ -72,7 +116,7 @@ components:
         - email
         - name
         - password
-    SignUpResponse:
+    UserResponse:
       type: object
       properties:
         id:

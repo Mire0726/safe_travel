@@ -15,6 +15,7 @@ import (
 	"github.com/Mire0726/safe_travel/backend/api/domain/model"
 	"github.com/Mire0726/safe_travel/backend/api/domain/repository"
 )
+
 type client interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	Query(query string, args ...interface{}) (*sql.Rows, error)
@@ -168,3 +169,21 @@ func (u *transport) BulkDelete(ctx context.Context, ids []any) error {
 
 	return nil
 }
+
+func (m *transport) Exist(ctx context.Context, opt ...qm.QueryMod) (bool, error) {
+	query := make([]qm.QueryMod, 0, len(opt)+1)
+	query = append(query, qm.Where("deleted_at IS NULL"))
+	query = append(query, opt...)
+
+	m.logger.Printf("Will execute Transport.Exist, package: sql")
+
+	exists, err := model.Transports(
+		query...,
+	).Exists(ctx, m.dbClient)
+	if err != nil {
+		return false, fmt.Errorf("error executing transport.Exist: %w", err)
+	}
+
+	return exists, nil
+}
+

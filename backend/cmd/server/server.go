@@ -80,6 +80,7 @@ func (s *Server) setupRoutes() {
 		// ハンドラーの初期化
 		handlerCmd := handler.NewHandler(*authClient, data)
 		public.POST("/signUp", handlerCmd.SignUp)
+		public.POST("/signIn", handlerCmd.SignIn)
 	}
 
 	// // 認証必要のエンドポイント

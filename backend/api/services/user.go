@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 
 	"github.com/Mire0726/safe_travel/backend/api/domain/model"
 	"github.com/Mire0726/safe_travel/backend/api/infrastructure/datastore"
@@ -15,7 +16,8 @@ import (
 
 // AuthUsecase インターフェースは、認証に関するメソッドを定義します
 type AuthUsecase interface {
-	SignUp(ctx context.Context, email, name, password string) (*SignUpResponse, error)
+	SignUp(ctx context.Context, req UserRequest) (*UserResponse, error)
+	SignIn(ctx context.Context, req EmailPassword) (*UserResponse, error)
 }
 
 type authUC struct {
@@ -30,7 +32,12 @@ func NewAuthUC(fa firebase.FirebaseAuth, data datastore.Data) AuthUsecase {
 	}
 }
 
-type SignUpRequest struct {
+type EmailPassword struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type UserRequest struct {
 	// Email メールアドレス
 	Email string `json:"email"`
 	// Name 名前
@@ -39,7 +46,7 @@ type SignUpRequest struct {
 	Password string `json:"password"`
 }
 
-type SignUpResponse struct {
+type UserResponse struct {
 	ID           string `json:"id"`           // 内部データベース ID
 	LocalID      string `json:"localId"`      // Firebase UID
 	Email        string `json:"email"`        // メールアドレス
@@ -49,9 +56,19 @@ type SignUpResponse struct {
 	ExpiresIn    string `json:"expiresIn"`    // トークンの有効期限
 }
 
-func (uc *authUC) SignUp(ctx context.Context, email, name, password string) (*SignUpResponse, error) {
+func (uc *authUC) SignUp(ctx context.Context, req UserRequest) (*UserResponse, error) {
+	exist, err := uc.data.ReadWriteStore().User().Exist(ctx, qm.Where("email = ?", req.Email))
+	if err != nil {
+		log.Println(err, "ユーザー情報の取得に失敗しました")
+		return nil, fmt.Errorf("ユーザー情報の取得に失敗しました: %w", err)
+	}
+
+	if exist {
+		return nil, fmt.Errorf("ユーザー情報が既に存在します")
+	}
+
 	// Firebase でユーザー作成
-	firebaseUser, err := uc.fa.SignUpWithEmailPassword(ctx, email, password)
+	firebaseUser, err := uc.fa.SignUpWithEmailPassword(ctx, req.Email, req.Password)
 	if err != nil {
 		log.Println(err, "firebaseのユーザー作成に失敗しました")
 
@@ -62,8 +79,8 @@ func (uc *authUC) SignUp(ctx context.Context, email, name, password string) (*Si
 	user := &model.User{
 		ID:        uuid.New().String(),
 		LocalID:   firebaseUser.LocalID,
-		Name:      name,
-		Email:     email,
+		Name:      req.Name,
+		Email:     req.Email,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -76,38 +93,40 @@ func (uc *authUC) SignUp(ctx context.Context, email, name, password string) (*Si
 		return nil, fmt.Errorf("ユーザー情報の保存に失敗しました: %w", err)
 	}
 
-	return &SignUpResponse{
+	return &UserResponse{
 		ID:           user.ID,              // データベース ID
 		LocalID:      firebaseUser.LocalID, // Firebase UID
-		Email:        email,
-		Name:         name,
+		Email:        req.Email,
+		Name:         req.Name,
 		IDToken:      firebaseUser.IDToken,
 		RefreshToken: firebaseUser.RefreshToken,
 		ExpiresIn:    firebaseUser.ExpiresIn,
 	}, nil
 }
 
-// func (uc *authUC) SignUp(ctx context.Context, email, name, password string) (*SignUpResponse, error) {
-// 	user := &model.User{
-// 		ID:    uuid.New().String(),
-// 		Name:  name,
-// 		Email: email,
-// 	}
+func (uc *authUC) SignIn(ctx context.Context, req EmailPassword) (*UserResponse, error) {
+	// Firebase でサインイン
+	firebaseUser, err := uc.fa.SignInWithEmailPassword(ctx, req.Email, req.Password)
+	if err != nil {
+		log.Println(err, "firebaseのユーザーログインに失敗しました")
 
-// 	if err := uc.data.ReadWriteStore().User().Insert(ctx, user); err != nil {
-// 		fmt.Println(err, "ユーザー情報の保存に失敗しました")
+		return nil, fmt.Errorf("firebaseのユーザーログインに失敗しました: %w", err)
+	}
 
-// 		return nil, err
-// 	}
+	// データベースにユーザー情報を保存
+	user, err := uc.data.ReadWriteStore().User().GetByEmail(ctx, req.Email)
+	if err != nil {
+		log.Println(err, "ユーザー情報の取得に失敗しました")
+		return nil, fmt.Errorf("ユーザー情報の取得に失敗しました: %w", err)
+	}
 
-// 	res, err := uc.fa.CreateUser(ctx, email, password)
-// 	if err != nil {
-// 		fmt.Println(err, "firebaseのユーザー作成に失敗しました")
-
-// 		return nil, err
-// 	}
-// 	return &SignUpResponse{
-// 		Res:  res,
-// 		User: user,
-// 	}, nil
-// }
+	return &UserResponse{
+		ID:           user.ID,              // データベース ID
+		LocalID:      firebaseUser.LocalID, // Firebase UID
+		Email:        req.Email,
+		Name:         user.Name,
+		IDToken:      firebaseUser.IDToken,
+		RefreshToken: firebaseUser.RefreshToken,
+		ExpiresIn:    firebaseUser.ExpiresIn,
+	}, nil
+}
