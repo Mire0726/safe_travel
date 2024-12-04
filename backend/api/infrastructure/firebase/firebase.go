@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -127,7 +126,6 @@ func (fa *FirebaseAuth) SignUpWithEmailPassword(ctx context.Context, email, pass
 
 func (fa *FirebaseAuth) SignInWithEmailPassword(ctx context.Context, email, password string) (*UserResponse, error) {
 	firebaseAPIKey := os.Getenv("FIREBASE_API_KEY")
-	log.Println("サインイン")
 	reqBody := &signUpRequestWithEmailPassword{
 		Email:             email,
 		Password:          password,
