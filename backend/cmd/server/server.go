@@ -83,20 +83,29 @@ func (s *Server) setupRoutes() {
 		public.POST("/signIn", handlerCmd.SignIn)
 	}
 
-	// // 認証必要のエンドポイント
+	// 認証必要のエンドポイント
 	protected := s.e.Group("/user")
 	protected.Use(authMiddleware.VerifyToken)
-	// {
-	// 	// Tripハンドラーの初期化
-	// 	tripRepo := NewTripRepository(s.db)
-	// 	tripService := NewTripService(tripRepo)
-	// 	tripHandler := NewTripHandler(tripService)
+	{
+		authClient, err := firebase.NewFirebaseAuth()
+		if err != nil {
+			log.Fatalf("Failed to create firebase auth client: %v", err)
+		}
 
-	// 	trips := protected.Group("/trips")
-	// 	{
-	// 		trips.POST("", tripHandler.CreateTrip)
-	// 		trips.GET("", tripHandler.GetTrips)
-	// 		trips.GET("/:id", tripHandler.GetTrip)
-	// 	}
-	// }
+		dbCfg, err := infrastructure.LoadDBConfig()
+		if err != nil {
+			log.Fatalf("Failed to load db config: %v", err)
+		}
+
+		dbClient, err := infrastructure.NewDB(dbCfg)
+		if err != nil {
+			log.Fatalf("Failed to connect to db: %v", err)
+		}
+
+		data := datastoresql.NewStore(dbClient, log.Default())
+
+		// ハンドラーの初期化
+		handlerCmd := handler.NewHandler(*authClient, data)
+		protected.DELETE("/delete", handlerCmd.Delete)
+	}
 }

@@ -18,6 +18,7 @@ import (
 type AuthUsecase interface {
 	SignUp(ctx context.Context, req UserRequest) (*UserResponse, error)
 	SignIn(ctx context.Context, req EmailPassword) (*UserResponse, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type authUC struct {
@@ -129,4 +130,24 @@ func (uc *authUC) SignIn(ctx context.Context, req EmailPassword) (*UserResponse,
 		RefreshToken: firebaseUser.RefreshToken,
 		ExpiresIn:    firebaseUser.ExpiresIn,
 	}, nil
+}
+
+func (uc *authUC) Delete(ctx context.Context, id string) error {
+	user, err := uc.data.ReadWriteStore().User().Get(ctx, id)
+	if err != nil {
+		log.Println(err, "ユーザー情報の取得に失敗しました")
+		return fmt.Errorf("ユーザー情報の取得に失敗しました: %w", err)
+	}
+
+	if err := uc.fa.DeleteUser(ctx, user.LocalID); err != nil {
+		log.Println(err, "firebaseのユーザー削除に失敗しました")
+		return fmt.Errorf("firebaseのユーザー削除に失敗しました: %w", err)
+	}
+
+	if err := uc.data.ReadWriteStore().User().Delete(ctx, id); err != nil {
+		log.Println(err, "ユーザー情報の削除に失敗しました")
+		return fmt.Errorf("ユーザー情報の削除に失敗しました: %w", err)
+	}
+
+	return nil
 }

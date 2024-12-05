@@ -36,3 +36,14 @@ func (h *Handler) SignIn(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, res)
 }
+
+func (h *Handler) Delete(c echo.Context) error {
+	ctx := c.Request().Context()
+	id := c.Param("id")
+
+	if err := h.authUC.Delete(ctx, id); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "success"})
+}

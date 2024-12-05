@@ -12,4 +12,5 @@ type User interface {
 	Get(ctx context.Context, id string, opt ...qm.QueryMod) (*model.User, error)
 	GetByEmail(ctx context.Context, email string) (*model.User, error)
 	Exist(ctx context.Context, opt ...qm.QueryMod) (bool, error)
+	Delete(ctx context.Context, id string) error
 }
