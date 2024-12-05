@@ -52,60 +52,32 @@ func (s *Server) setupMiddleware() {
 func (s *Server) setupRoutes() {
 	// 認証ミドルウェアの作成
 	authMiddleware := firebase.NewAuthMiddleware(s.auth)
+	authClient, err := firebase.NewFirebaseAuth()
+	if err != nil {
+		log.Fatalf("Failed to create firebase auth client: %v", err)
+	}
+	dbCfg, err := infrastructure.LoadDBConfig()
+	if err != nil {
+		log.Fatalf("Failed to load db config: %v", err)
+	}
+	dbClient, err := infrastructure.NewDB(dbCfg)
+	if err != nil {
+		log.Fatalf("Failed to connect to db: %v", err)
+	}
+	data := datastoresql.NewStore(dbClient, log.Default())
+	// ハンドラーの初期化
+	handlerCmd := handler.NewHandler(*authClient, data)
 
 	// 認証不要のエンドポイント
 	public := s.e.Group("")
-	{
-		public.GET("/health", func(c echo.Context) error {
-			return c.JSON(200, map[string]string{"status": "ok"})
-		})
-
-		authClient, err := firebase.NewFirebaseAuth()
-		if err != nil {
-			log.Fatalf("Failed to create firebase auth client: %v", err)
-		}
-
-		dbCfg, err := infrastructure.LoadDBConfig()
-		if err != nil {
-			log.Fatalf("Failed to load db config: %v", err)
-		}
-
-		dbClient, err := infrastructure.NewDB(dbCfg)
-		if err != nil {
-			log.Fatalf("Failed to connect to db: %v", err)
-		}
-
-		data := datastoresql.NewStore(dbClient, log.Default())
-
-		// ハンドラーの初期化
-		handlerCmd := handler.NewHandler(*authClient, data)
-		public.POST("/signUp", handlerCmd.SignUp)
-		public.POST("/signIn", handlerCmd.SignIn)
-	}
+	public.GET("/health", func(c echo.Context) error {
+		return c.JSON(200, map[string]string{"status": "ok"})
+	})
+	public.POST("/signUp", handlerCmd.SignUp)
+	public.POST("/signIn", handlerCmd.SignIn)
 
 	// 認証必要のエンドポイント
 	protected := s.e.Group("/user")
 	protected.Use(authMiddleware.VerifyToken)
-	{
-		authClient, err := firebase.NewFirebaseAuth()
-		if err != nil {
-			log.Fatalf("Failed to create firebase auth client: %v", err)
-		}
-
-		dbCfg, err := infrastructure.LoadDBConfig()
-		if err != nil {
-			log.Fatalf("Failed to load db config: %v", err)
-		}
-
-		dbClient, err := infrastructure.NewDB(dbCfg)
-		if err != nil {
-			log.Fatalf("Failed to connect to db: %v", err)
-		}
-
-		data := datastoresql.NewStore(dbClient, log.Default())
-
-		// ハンドラーの初期化
-		handlerCmd := handler.NewHandler(*authClient, data)
-		protected.DELETE("/delete", handlerCmd.Delete)
-	}
+	protected.DELETE("/delete", handlerCmd.Delete)
 }
