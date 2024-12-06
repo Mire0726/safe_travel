@@ -27,7 +27,7 @@ func main() {
 	// テーブルデータのリストを準備
 	tables := []TemplateData{
 		{
-			Package:               "sql",
+			Package:               "user",
 			CamelTableName:        "user",
 			PascalTableName:       "User",
 			PluralCamelTableName:  "users",
@@ -35,7 +35,7 @@ func main() {
 			TableName:             "users",
 		},
 		{
-			Package:               "sql",
+			Package:               "event",
 			CamelTableName:        "event",
 			PascalTableName:       "Event",
 			PluralCamelTableName:  "events",
@@ -43,7 +43,7 @@ func main() {
 			TableName:             "events",
 		},
 		{
-			Package:               "sql",
+			Package:               "transport",
 			CamelTableName:        "transport",
 			PascalTableName:       "Transport",
 			PluralCamelTableName:  "transports",

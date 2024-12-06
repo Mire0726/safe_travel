@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -39,10 +38,10 @@ func NewUser(dbClient client, logger *log.Logger) repository.User {
 
 func (m *user) Get(ctx context.Context, id string, opt ...qm.QueryMod) (*model.User, error) {
 	query := make([]qm.QueryMod, 0, len(opt)+2)
-	query = append(query, qm.Where("id = ?", id), qm.And("deleted_at IS NULL"))
+	query = append(query, qm.Where("id = ?", id))
 	query = append(query, opt...)
 
-	m.logger.Printf("Will exec User.Get, package: sql")
+	m.logger.Printf("Will exec User.Get, package: user")
 
 	user, err := model.Users(
 		query...,
@@ -60,10 +59,10 @@ func (m *user) Get(ctx context.Context, id string, opt ...qm.QueryMod) (*model.U
 
 func (u *user) BatchGet(ctx context.Context, ids []any, opt ...qm.QueryMod) (model.UserSlice, error) {
 	query := make([]qm.QueryMod, 0, len(opt)+2)
-	query = append(query, qm.WhereIn("id IN ?", ids...), qm.And("deleted_at IS NULL"))
+	query = append(query, qm.WhereIn("id IN ?", ids...))
 	query = append(query, opt...)
 
-	u.logger.Printf("Will exec User.BatchGet, package: sql")
+	u.logger.Printf("Will exec User.BatchGet, package: user")
 
 	users, err := model.Users(
 		query...,
@@ -76,11 +75,10 @@ func (u *user) BatchGet(ctx context.Context, ids []any, opt ...qm.QueryMod) (mod
 }
 
 func (m *user) Count(ctx context.Context, opt ...qm.QueryMod) (int64, error) {
-	query := make([]qm.QueryMod, 0, len(opt)+1)
-	query = append(query, qm.Where("deleted_at IS NULL"))
+	query := make([]qm.QueryMod, 0, len(opt))
 	query = append(query, opt...)
 
-	m.logger.Printf("Will execute User.Count, package: sql")
+	m.logger.Printf("Will execute User.Count, package: user")
 
 	count, err := model.Users(
 		query...,
@@ -93,11 +91,10 @@ func (m *user) Count(ctx context.Context, opt ...qm.QueryMod) (int64, error) {
 }
 
 func (m *user) List(ctx context.Context, opt ...qm.QueryMod) (model.UserSlice, error) {
-	query := make([]qm.QueryMod, 0, len(opt)+1)
-	query = append(query, qm.Where("deleted_at IS NULL"))
+	query := make([]qm.QueryMod, 0, len(opt))
 	query = append(query, opt...)
 
-	m.logger.Printf("Will execute User.List, package: sql")
+	m.logger.Printf("Will execute User.List, package: user")
 
 	users, err := model.Users(
 		query...,
@@ -110,7 +107,7 @@ func (m *user) List(ctx context.Context, opt ...qm.QueryMod) (model.UserSlice, e
 }
 
 func (m *user) Insert(ctx context.Context, user *model.User) error {
-	m.logger.Printf("Will execute User.Insert, package: sql")
+	m.logger.Printf("Will execute User.Insert, package: user")
 
 	err := user.Insert(ctx, m.dbClient, boil.Infer())
 	if err != nil {
@@ -119,11 +116,10 @@ func (m *user) Insert(ctx context.Context, user *model.User) error {
 
 	return nil
 }
-
 func (u *user) Delete(ctx context.Context, id string) error {
-	u.logger.Printf("Will execute User.Delete, package: sql")
+	u.logger.Printf("Will execute User.Delete, package: user")
 
-	const query = `UPDATE users SET deleted_at = $1 WHERE id = $2`
+	const query = `DELETE FROM users WHERE id = ?`
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -133,7 +129,6 @@ func (u *user) Delete(ctx context.Context, id string) error {
 	_, err := u.dbClient.ExecContext(
 		ctx,
 		query,
-		time.Now(),
 		id,
 	)
 	if err != nil {
@@ -143,38 +138,11 @@ func (u *user) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (u *user) BulkDelete(ctx context.Context, ids []any) error {
-	if len(ids) == 0 {
-		return nil
-	}
-
-	u.logger.Printf("Will execute User.BulkDelete, package: sql")
-
-	const query = `UPDATE users SET deleted_at = $1 WHERE id IN (?)`
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, query)
-	}
-
-	_, err := u.dbClient.ExecContext(
-		ctx,
-		query,
-		time.Now(),
-		ids,
-	)
-	if err != nil {
-		return fmt.Errorf("error executing user.BulkDelete: %w", err)
-	}
-
-	return nil
-}
-
 func (m *user) Exist(ctx context.Context, opt ...qm.QueryMod) (bool, error) {
-	query := make([]qm.QueryMod, 0, len(opt)+1)
+	query := make([]qm.QueryMod, 0, len(opt))
 	query = append(query, opt...)
 
-	m.logger.Printf("Will execute User.Exist, package: sql")
+	m.logger.Printf("Will execute User.Exist, package: user")
 
 	exists, err := model.Users(
 		query...,

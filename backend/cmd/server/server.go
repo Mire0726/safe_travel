@@ -79,5 +79,5 @@ func (s *Server) setupRoutes() {
 	// 認証必要のエンドポイント
 	protected := s.e.Group("/user")
 	protected.Use(authMiddleware.VerifyToken)
-	protected.DELETE("/delete", handlerCmd.Delete)
+	protected.DELETE("/delete/:id", handlerCmd.Delete)
 }

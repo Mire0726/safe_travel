@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -39,7 +38,7 @@ func New{{ .PascalTableName }}(dbClient client, logger *log.Logger) repository.{
 
 func (m *{{ .CamelTableName }}) Get(ctx context.Context, id string, opt ...qm.QueryMod) (*model.{{ .PascalTableName }}, error) {
 	query := make([]qm.QueryMod, 0, len(opt)+2)
-	query = append(query, qm.Where("id = ?", id), qm.And("deleted_at IS NULL"))
+	query = append(query, qm.Where("id = ?", id))
 	query = append(query, opt...)
 
 	m.logger.Printf("Will exec {{ .PascalTableName }}.Get, package: {{ .Package }}")
@@ -60,7 +59,7 @@ func (m *{{ .CamelTableName }}) Get(ctx context.Context, id string, opt ...qm.Qu
 
 func (u *{{ .CamelTableName }}) BatchGet(ctx context.Context, ids []any, opt ...qm.QueryMod) (model.{{ .PascalTableName }}Slice, error) {
 	query := make([]qm.QueryMod, 0, len(opt)+2)
-	query = append(query, qm.WhereIn("id IN ?", ids...), qm.And("deleted_at IS NULL"))
+	query = append(query, qm.WhereIn("id IN ?", ids...))
 	query = append(query, opt...)
 
 	u.logger.Printf("Will exec {{ .PascalTableName }}.BatchGet, package: {{ .Package }}")
@@ -76,8 +75,7 @@ func (u *{{ .CamelTableName }}) BatchGet(ctx context.Context, ids []any, opt ...
 }
 
 func (m *{{ .CamelTableName }}) Count(ctx context.Context, opt ...qm.QueryMod) (int64, error) {
-	query := make([]qm.QueryMod, 0, len(opt)+1)
-	query = append(query, qm.Where("deleted_at IS NULL"))
+	query := make([]qm.QueryMod, 0, len(opt))
 	query = append(query, opt...)
 
 	m.logger.Printf("Will execute {{ .PascalTableName }}.Count, package: {{ .Package }}")
@@ -93,8 +91,7 @@ func (m *{{ .CamelTableName }}) Count(ctx context.Context, opt ...qm.QueryMod) (
 }
 
 func (m *{{ .CamelTableName }}) List(ctx context.Context, opt ...qm.QueryMod) (model.{{ .PascalTableName }}Slice, error) {
-	query := make([]qm.QueryMod, 0, len(opt)+1)
-	query = append(query, qm.Where("deleted_at IS NULL"))
+	query := make([]qm.QueryMod, 0, len(opt))
 	query = append(query, opt...)
 
 	m.logger.Printf("Will execute {{ .PascalTableName }}.List, package: {{ .Package }}")
@@ -119,11 +116,10 @@ func (m *{{ .CamelTableName }}) Insert(ctx context.Context, {{ .CamelTableName }
 
 	return nil
 }
-
 func (u *{{ .CamelTableName }}) Delete(ctx context.Context, id string) error {
 	u.logger.Printf("Will execute {{ .PascalTableName }}.Delete, package: {{ .Package }}")
 
-	const query = `UPDATE {{ .TableName }} SET deleted_at = $1 WHERE id = $2`
+	const query = `DELETE FROM {{ .TableName }} WHERE id = ?`
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -133,7 +129,6 @@ func (u *{{ .CamelTableName }}) Delete(ctx context.Context, id string) error {
 	_, err := u.dbClient.ExecContext(
 		ctx,
 		query,
-		time.Now(),
 		id,
 	)
 	if err != nil {
@@ -143,36 +138,8 @@ func (u *{{ .CamelTableName }}) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (u *{{ .CamelTableName }}) BulkDelete(ctx context.Context, ids []any) error {
-	if len(ids) == 0 {
-		return nil
-	}
-
-	u.logger.Printf("Will execute {{ .PascalTableName }}.BulkDelete, package: {{ .Package }}")
-
-	const query = `UPDATE {{ .TableName }} SET deleted_at = $1 WHERE id IN (?)`
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, query)
-	}
-
-	_, err := u.dbClient.ExecContext(
-		ctx,
-		query,
-		time.Now(),
-		ids,
-	)
-	if err != nil {
-		return fmt.Errorf("error executing {{ .CamelTableName }}.BulkDelete: %w", err)
-	}
-
-	return nil
-}
-
 func (m *{{ .CamelTableName }}) Exist(ctx context.Context, opt ...qm.QueryMod) (bool, error) {
-	query := make([]qm.QueryMod, 0, len(opt)+1)
-	query = append(query, qm.Where("deleted_at IS NULL"))
+	query := make([]qm.QueryMod, 0, len(opt))
 	query = append(query, opt...)
 
 	m.logger.Printf("Will execute {{ .PascalTableName }}.Exist, package: {{ .Package }}")

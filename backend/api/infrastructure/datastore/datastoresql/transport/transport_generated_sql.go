@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -39,10 +38,10 @@ func NewTransport(dbClient client, logger *log.Logger) repository.Transport {
 
 func (m *transport) Get(ctx context.Context, id string, opt ...qm.QueryMod) (*model.Transport, error) {
 	query := make([]qm.QueryMod, 0, len(opt)+2)
-	query = append(query, qm.Where("id = ?", id), qm.And("deleted_at IS NULL"))
+	query = append(query, qm.Where("id = ?", id))
 	query = append(query, opt...)
 
-	m.logger.Printf("Will exec Transport.Get, package: sql")
+	m.logger.Printf("Will exec Transport.Get, package: transport")
 
 	transport, err := model.Transports(
 		query...,
@@ -60,10 +59,10 @@ func (m *transport) Get(ctx context.Context, id string, opt ...qm.QueryMod) (*mo
 
 func (u *transport) BatchGet(ctx context.Context, ids []any, opt ...qm.QueryMod) (model.TransportSlice, error) {
 	query := make([]qm.QueryMod, 0, len(opt)+2)
-	query = append(query, qm.WhereIn("id IN ?", ids...), qm.And("deleted_at IS NULL"))
+	query = append(query, qm.WhereIn("id IN ?", ids...))
 	query = append(query, opt...)
 
-	u.logger.Printf("Will exec Transport.BatchGet, package: sql")
+	u.logger.Printf("Will exec Transport.BatchGet, package: transport")
 
 	transports, err := model.Transports(
 		query...,
@@ -76,11 +75,10 @@ func (u *transport) BatchGet(ctx context.Context, ids []any, opt ...qm.QueryMod)
 }
 
 func (m *transport) Count(ctx context.Context, opt ...qm.QueryMod) (int64, error) {
-	query := make([]qm.QueryMod, 0, len(opt)+1)
-	query = append(query, qm.Where("deleted_at IS NULL"))
+	query := make([]qm.QueryMod, 0, len(opt))
 	query = append(query, opt...)
 
-	m.logger.Printf("Will execute Transport.Count, package: sql")
+	m.logger.Printf("Will execute Transport.Count, package: transport")
 
 	count, err := model.Transports(
 		query...,
@@ -93,11 +91,10 @@ func (m *transport) Count(ctx context.Context, opt ...qm.QueryMod) (int64, error
 }
 
 func (m *transport) List(ctx context.Context, opt ...qm.QueryMod) (model.TransportSlice, error) {
-	query := make([]qm.QueryMod, 0, len(opt)+1)
-	query = append(query, qm.Where("deleted_at IS NULL"))
+	query := make([]qm.QueryMod, 0, len(opt))
 	query = append(query, opt...)
 
-	m.logger.Printf("Will execute Transport.List, package: sql")
+	m.logger.Printf("Will execute Transport.List, package: transport")
 
 	transports, err := model.Transports(
 		query...,
@@ -110,7 +107,7 @@ func (m *transport) List(ctx context.Context, opt ...qm.QueryMod) (model.Transpo
 }
 
 func (m *transport) Insert(ctx context.Context, transport *model.Transport) error {
-	m.logger.Printf("Will execute Transport.Insert, package: sql")
+	m.logger.Printf("Will execute Transport.Insert, package: transport")
 
 	err := transport.Insert(ctx, m.dbClient, boil.Infer())
 	if err != nil {
@@ -119,11 +116,10 @@ func (m *transport) Insert(ctx context.Context, transport *model.Transport) erro
 
 	return nil
 }
-
 func (u *transport) Delete(ctx context.Context, id string) error {
-	u.logger.Printf("Will execute Transport.Delete, package: sql")
+	u.logger.Printf("Will execute Transport.Delete, package: transport")
 
-	const query = `UPDATE transports SET deleted_at = $1 WHERE id = $2`
+	const query = `DELETE FROM transports WHERE id = ?`
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -133,7 +129,6 @@ func (u *transport) Delete(ctx context.Context, id string) error {
 	_, err := u.dbClient.ExecContext(
 		ctx,
 		query,
-		time.Now(),
 		id,
 	)
 	if err != nil {
@@ -143,39 +138,11 @@ func (u *transport) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (u *transport) BulkDelete(ctx context.Context, ids []any) error {
-	if len(ids) == 0 {
-		return nil
-	}
-
-	u.logger.Printf("Will execute Transport.BulkDelete, package: sql")
-
-	const query = `UPDATE transports SET deleted_at = $1 WHERE id IN (?)`
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, query)
-	}
-
-	_, err := u.dbClient.ExecContext(
-		ctx,
-		query,
-		time.Now(),
-		ids,
-	)
-	if err != nil {
-		return fmt.Errorf("error executing transport.BulkDelete: %w", err)
-	}
-
-	return nil
-}
-
 func (m *transport) Exist(ctx context.Context, opt ...qm.QueryMod) (bool, error) {
-	query := make([]qm.QueryMod, 0, len(opt)+1)
-	query = append(query, qm.Where("deleted_at IS NULL"))
+	query := make([]qm.QueryMod, 0, len(opt))
 	query = append(query, opt...)
 
-	m.logger.Printf("Will execute Transport.Exist, package: sql")
+	m.logger.Printf("Will execute Transport.Exist, package: transport")
 
 	exists, err := model.Transports(
 		query...,

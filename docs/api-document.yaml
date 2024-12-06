@@ -94,25 +94,20 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  /user/delete:
+  /user/delete/{id}:
     delete:
       tags:
         - user
       summary: "Delete a user"
       description: "Allows a user to delete their account."
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                id:
-                  type: string
-                  description: "User's unique internal ID"
-                  example: "a3b0f9a0-e9c3-4ff4-b3fa-65f8a4f1f2a5"
-              required:
-                - id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "userID"
+          schema:
+            type: string
+            example: ""
       responses:
         "200":
           description: "Successful deletion"
@@ -131,6 +126,11 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
 components:
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     UserRequest:
       type: object

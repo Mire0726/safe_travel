@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/Mire0726/safe_travel/backend/api/infrastructure/utils"
@@ -44,20 +46,21 @@ func (h *Handler) SignIn(c echo.Context) error {
 func (h *Handler) Delete(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	userID, err := utils.GetUserID(ctx)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "contextからuserIDの取得に失敗しました"})
-	}
-
 	id := c.Param("id")
-
-	if id != userID {
-		return c.JSON(http.StatusForbidden, map[string]string{"message": "contextから取得したuserIDとリクエストパラメータのidが一致しません"})
+	if id == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "invalid id"})
 	}
 
+	// ユーザー削除処理
 	if err := h.authUC.Delete(ctx, id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return c.JSON(http.StatusNotFound, map[string]string{"message": "user not found"})
+		}
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error"})
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"message": "success"})
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"message": "success",
+		"id":      id,
+	})
 }

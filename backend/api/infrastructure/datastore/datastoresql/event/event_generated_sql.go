@@ -7,7 +7,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/volatiletech/sqlboiler/v4/boil"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
@@ -39,10 +38,10 @@ func NewEvent(dbClient client, logger *log.Logger) repository.Event {
 
 func (m *event) Get(ctx context.Context, id string, opt ...qm.QueryMod) (*model.Event, error) {
 	query := make([]qm.QueryMod, 0, len(opt)+2)
-	query = append(query, qm.Where("id = ?", id), qm.And("deleted_at IS NULL"))
+	query = append(query, qm.Where("id = ?", id))
 	query = append(query, opt...)
 
-	m.logger.Printf("Will exec Event.Get, package: sql")
+	m.logger.Printf("Will exec Event.Get, package: event")
 
 	event, err := model.Events(
 		query...,
@@ -60,10 +59,10 @@ func (m *event) Get(ctx context.Context, id string, opt ...qm.QueryMod) (*model.
 
 func (u *event) BatchGet(ctx context.Context, ids []any, opt ...qm.QueryMod) (model.EventSlice, error) {
 	query := make([]qm.QueryMod, 0, len(opt)+2)
-	query = append(query, qm.WhereIn("id IN ?", ids...), qm.And("deleted_at IS NULL"))
+	query = append(query, qm.WhereIn("id IN ?", ids...))
 	query = append(query, opt...)
 
-	u.logger.Printf("Will exec Event.BatchGet, package: sql")
+	u.logger.Printf("Will exec Event.BatchGet, package: event")
 
 	events, err := model.Events(
 		query...,
@@ -76,11 +75,10 @@ func (u *event) BatchGet(ctx context.Context, ids []any, opt ...qm.QueryMod) (mo
 }
 
 func (m *event) Count(ctx context.Context, opt ...qm.QueryMod) (int64, error) {
-	query := make([]qm.QueryMod, 0, len(opt)+1)
-	query = append(query, qm.Where("deleted_at IS NULL"))
+	query := make([]qm.QueryMod, 0, len(opt))
 	query = append(query, opt...)
 
-	m.logger.Printf("Will execute Event.Count, package: sql")
+	m.logger.Printf("Will execute Event.Count, package: event")
 
 	count, err := model.Events(
 		query...,
@@ -93,11 +91,10 @@ func (m *event) Count(ctx context.Context, opt ...qm.QueryMod) (int64, error) {
 }
 
 func (m *event) List(ctx context.Context, opt ...qm.QueryMod) (model.EventSlice, error) {
-	query := make([]qm.QueryMod, 0, len(opt)+1)
-	query = append(query, qm.Where("deleted_at IS NULL"))
+	query := make([]qm.QueryMod, 0, len(opt))
 	query = append(query, opt...)
 
-	m.logger.Printf("Will execute Event.List, package: sql")
+	m.logger.Printf("Will execute Event.List, package: event")
 
 	events, err := model.Events(
 		query...,
@@ -110,7 +107,7 @@ func (m *event) List(ctx context.Context, opt ...qm.QueryMod) (model.EventSlice,
 }
 
 func (m *event) Insert(ctx context.Context, event *model.Event) error {
-	m.logger.Printf("Will execute Event.Insert, package: sql")
+	m.logger.Printf("Will execute Event.Insert, package: event")
 
 	err := event.Insert(ctx, m.dbClient, boil.Infer())
 	if err != nil {
@@ -119,11 +116,10 @@ func (m *event) Insert(ctx context.Context, event *model.Event) error {
 
 	return nil
 }
-
 func (u *event) Delete(ctx context.Context, id string) error {
-	u.logger.Printf("Will execute Event.Delete, package: sql")
+	u.logger.Printf("Will execute Event.Delete, package: event")
 
-	const query = `UPDATE events SET deleted_at = $1 WHERE id = $2`
+	const query = `DELETE FROM events WHERE id = ?`
 
 	if boil.IsDebug(ctx) {
 		writer := boil.DebugWriterFrom(ctx)
@@ -133,7 +129,6 @@ func (u *event) Delete(ctx context.Context, id string) error {
 	_, err := u.dbClient.ExecContext(
 		ctx,
 		query,
-		time.Now(),
 		id,
 	)
 	if err != nil {
@@ -143,39 +138,11 @@ func (u *event) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (u *event) BulkDelete(ctx context.Context, ids []any) error {
-	if len(ids) == 0 {
-		return nil
-	}
-
-	u.logger.Printf("Will execute Event.BulkDelete, package: sql")
-
-	const query = `UPDATE events SET deleted_at = $1 WHERE id IN (?)`
-
-	if boil.IsDebug(ctx) {
-		writer := boil.DebugWriterFrom(ctx)
-		fmt.Fprintln(writer, query)
-	}
-
-	_, err := u.dbClient.ExecContext(
-		ctx,
-		query,
-		time.Now(),
-		ids,
-	)
-	if err != nil {
-		return fmt.Errorf("error executing event.BulkDelete: %w", err)
-	}
-
-	return nil
-}
-
 func (m *event) Exist(ctx context.Context, opt ...qm.QueryMod) (bool, error) {
-	query := make([]qm.QueryMod, 0, len(opt)+1)
-	query = append(query, qm.Where("deleted_at IS NULL"))
+	query := make([]qm.QueryMod, 0, len(opt))
 	query = append(query, opt...)
 
-	m.logger.Printf("Will execute Event.Exist, package: sql")
+	m.logger.Printf("Will execute Event.Exist, package: event")
 
 	exists, err := model.Events(
 		query...,
