@@ -80,4 +80,5 @@ func (s *Server) setupRoutes() {
 	protected := s.e.Group("/user")
 	protected.Use(authMiddleware.VerifyToken)
 	protected.DELETE("/delete/:id", handlerCmd.Delete)
+	protected.POST("/event/:id", handlerCmd.CreateEvent)
 }

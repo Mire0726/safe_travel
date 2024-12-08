@@ -7,9 +7,13 @@ import (
 )
 
 type Handler struct {
-	authUC services.AuthUsecase
+	authUC  services.AuthUsecase
+	eventUC services.EventUsecase
 }
 
 func NewHandler(fa firebase.FirebaseAuth, data datastore.Data) *Handler {
-	return &Handler{authUC: services.NewAuthUC(fa, data)}
+	return &Handler{
+		authUC:  services.NewAuthUC(fa, data),
+		eventUC: services.NewEventUC(data),
+	}
 }

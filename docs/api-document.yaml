@@ -125,6 +125,80 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  /user/event/{id}:
+    post:
+      tags:
+        - event
+      summary: "Create user's event"
+      description: "Allows a user to create an event."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "userID"
+          schema:
+            type: string
+            example: ""
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: "Event title"
+                  example: "Event title"
+              required:
+                - name
+      responses:
+        "200":
+          description: "Successful event creation"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Success message"
+                example:
+                  message: "User event created successfully"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    get:
+      tags:
+        - user
+      summary: "List user's event"
+      description: "Allows a user to get their event."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: "userID"
+          schema:
+            type: string
+            example: ""
+      responses:
+        "200":
+          description: "Successful get"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: "Success message"
+                example:
+                  message: "User event get successfully"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
 components:
   securitySchemes:
     Bearer:
