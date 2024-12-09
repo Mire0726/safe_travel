@@ -7,6 +7,7 @@ import (
 
 	"github.com/Mire0726/safe_travel/backend/api/domain/model"
 	"github.com/Mire0726/safe_travel/backend/api/infrastructure/datastore"
+	"github.com/google/uuid"
 	"github.com/volatiletech/sqlboiler/v4/queries/qm"
 )
 
@@ -46,6 +47,7 @@ type EventResponse struct {
 func (uc *eventUC) Create(ctx context.Context, req EventRequest, userID string) (*EventResponse, error) {
 	// イベントを作成
 	event := &model.Event{
+		ID:        uuid.New().String(),
 		Name:      req.Name,
 		CreatedBy: userID,
 		CreatedAt: time.Now(),
@@ -56,10 +58,15 @@ func (uc *eventUC) Create(ctx context.Context, req EventRequest, userID string) 
 		return nil, fmt.Errorf("イベントの作成に失敗しました: %w", err)
 	}
 
-	return nil, nil
+	return &EventResponse{
+		ID:        event.ID,
+		Name:      event.Name,
+		CreatedBy: event.CreatedBy,
+	}, nil
 }
 
 func (uc *eventUC) List(ctx context.Context, userID string) ([]*model.Event, error) {
+	fmt.Println("userID", userID)
 	events, err := uc.data.ReadWriteStore().Event().List(ctx, qm.Where("created_by = ?", userID))
 	if err != nil {
 		return nil, fmt.Errorf("イベントの取得に失敗しました: %w", err)
@@ -69,7 +76,6 @@ func (uc *eventUC) List(ctx context.Context, userID string) ([]*model.Event, err
 }
 
 func (uc *eventUC) Delete(ctx context.Context, id, eventId string) error {
-
 	// イベントが存在するか確認
 	exist, err := uc.data.ReadWriteStore().Event().Exist(ctx, qm.Where("id = ? AND created_by = ?", eventId, id))
 	if err != nil {

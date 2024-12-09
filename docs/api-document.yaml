@@ -171,7 +171,7 @@ paths:
           $ref: "#/components/responses/InternalServerError"
     get:
       tags:
-        - user
+        - event
       summary: "List user's event"
       description: "Allows a user to get their event."
       parameters:

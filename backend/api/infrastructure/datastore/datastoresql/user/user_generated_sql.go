@@ -116,6 +116,7 @@ func (m *user) Insert(ctx context.Context, user *model.User) error {
 
 	return nil
 }
+
 func (u *user) Delete(ctx context.Context, id string) error {
 	u.logger.Printf("Will execute User.Delete, package: user")
 
@@ -153,4 +154,3 @@ func (m *user) Exist(ctx context.Context, opt ...qm.QueryMod) (bool, error) {
 
 	return exists, nil
 }
-

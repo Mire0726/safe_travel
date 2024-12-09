@@ -116,6 +116,7 @@ func (m *event) Insert(ctx context.Context, event *model.Event) error {
 
 	return nil
 }
+
 func (u *event) Delete(ctx context.Context, id string) error {
 	u.logger.Printf("Will execute Event.Delete, package: event")
 
@@ -153,4 +154,3 @@ func (m *event) Exist(ctx context.Context, opt ...qm.QueryMod) (bool, error) {
 
 	return exists, nil
 }
-
