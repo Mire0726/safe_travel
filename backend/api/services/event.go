@@ -13,7 +13,8 @@ import (
 // EventUsecase インターフェースは、イベントに関するメソッドを定義します
 type EventUsecase interface {
 	Create(ctx context.Context, req EventRequest, userID string) (*EventResponse, error)
-	List(ctx context.Context, userID string) ([]*model.Event, error) 
+	List(ctx context.Context, userID string) ([]*model.Event, error)
+	Delete(ctx context.Context, id, eventId string) error
 }
 
 type eventUC struct {
@@ -65,4 +66,23 @@ func (uc *eventUC) List(ctx context.Context, userID string) ([]*model.Event, err
 	}
 
 	return events, nil
+}
+
+func (uc *eventUC) Delete(ctx context.Context, id, eventId string) error {
+
+	// イベントが存在するか確認
+	exist, err := uc.data.ReadWriteStore().Event().Exist(ctx, qm.Where("id = ? AND created_by = ?", eventId, id))
+	if err != nil {
+		return fmt.Errorf("イベントの存在確認に失敗しました: %w", err)
+	}
+	if !exist {
+		return fmt.Errorf("イベントが存在しません")
+	}
+
+	// イベントを削除
+	if err := uc.data.ReadWriteStore().Event().Delete(ctx, eventId); err != nil {
+		return fmt.Errorf("イベントの削除に失敗しました: %w", err)
+	}
+
+	return nil
 }

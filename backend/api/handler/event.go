@@ -34,3 +34,16 @@ func (h *Handler) ListEvent(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, res)
 }
+
+func (h *Handler) DeleteEvent(c echo.Context) error {
+	ctx := c.Request().Context()
+	id := c.Param("id")
+	eventId := c.Param("eventId")
+
+	err := h.eventUC.Delete(ctx, id, eventId)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error"})
+	}
+
+	return c.JSON(http.StatusOK, nil)
+}

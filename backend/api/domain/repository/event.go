@@ -10,4 +10,6 @@ import (
 type Event interface {
 	Insert(ctx context.Context, m *model.Event) error
 	List(ctx context.Context, opt ...qm.QueryMod) (model.EventSlice, error)
+	Delete(ctx context.Context, id string) error
+	Exist(ctx context.Context, opt ...qm.QueryMod) (bool, error)
 }
