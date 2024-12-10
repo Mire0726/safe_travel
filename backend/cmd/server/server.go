@@ -83,4 +83,6 @@ func (s *Server) setupRoutes() {
 	protected.POST("/event/:id", handlerCmd.CreateEvent)
 	protected.GET("/event/:id", handlerCmd.ListEvent)
 	protected.DELETE("/event/:id/:eventId", handlerCmd.DeleteEvent)
+	protected.POST("/transport/:id/:eventId", handlerCmd.CreateTransport)
+	protected.GET("/transport/:id/:eventId", handlerCmd.ListTransport)
 }
