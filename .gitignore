@@ -2,3 +2,4 @@ frontend/node_modules
 backend/api/config
 .env
 backend/sqlboiler.toml
+frontend/.next
