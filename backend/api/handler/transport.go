@@ -37,3 +37,17 @@ func (h *Handler) ListTransport(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, res)
 }
+
+func (h *Handler)DeleteTransport(c echo.Context) error {
+	ctx := c.Request().Context()
+	id := c.Param("id")
+	eventId := c.Param("eventId")
+	transportId := c.Param("transportId")
+
+	err := h.transportUC.Delete(ctx, id, eventId, transportId)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "internal server error"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "success"})
+}

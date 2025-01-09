@@ -15,6 +15,7 @@ import (
 type TransportUsecase interface {
 	Create(ctx context.Context, req TransportRequest, userID, eventID string) (*TransportResponse, error)
 	List(ctx context.Context, userID, eventID string) ([]*model.Transport, error)
+	Delete(ctx context.Context, userID, eventID, transportID string) error
 }
 
 type transportUC struct {
